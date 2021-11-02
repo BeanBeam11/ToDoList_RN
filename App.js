@@ -1,17 +1,50 @@
 import { Platform } from 'expo-modules-core';
-import React, {useState} from 'react';
-import { Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import { Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView } from 'react-native';
 import Task from './components/Task';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BottomSheet from 'reanimated-bottom-sheet';
 import Animated from 'react-native-reanimated';
+import * as ImagePicker from 'expo-image-picker';
+import {Camera} from 'expo-camera';
 
 export default function App() {
   const [task, setTask] = useState();
   const [taskItems, setTaskItems] = useState([]);
+  const [image, setImage] = useState(null);
+  const [imageItems, setImageItems] = useState([]);
 
   const bsRef = React.createRef();
   const fall = new Animated.Value(1);
+
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          alert('Sorry, we need camera roll permissions to make this work!');
+        }
+      }
+    })();
+  }, []);
+
+  const takePhotoFromCamera = () =>{
+    alert('Take Photo');
+  }
+  const choosePhotoFromLibrary = async () =>{
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.cancelled) {
+      setImage(result.uri);
+    }
+  }
 
   const renderInner = () => (
     <View style={styles.panel}>
@@ -19,10 +52,10 @@ export default function App() {
         <Text style={styles.panelTitle}>Upload Photo</Text>
         <Text style={styles.panelSubtitle}>Choose Your Photo</Text>
       </View>
-      <TouchableOpacity style={styles.panelButtonNormal}>
+      <TouchableOpacity style={styles.panelButtonNormal} onPress={takePhotoFromCamera}>
         <Text style={styles.panelButtonTitle}>Take Photo</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.panelButtonNormal}>
+      <TouchableOpacity style={styles.panelButtonNormal} onPress={choosePhotoFromLibrary}>
         <Text style={styles.panelButtonTitle}>Choose From Library</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.panelButtonDanger} onPress={()=> bsRef.current.snapTo(1)}>
@@ -43,12 +76,17 @@ export default function App() {
     Keyboard.dismiss();
     setTaskItems([...taskItems, task]);
     setTask(null);
+    setImageItems([...imageItems, image]);
+    setImage(null);
   }
 
   const completeTask = (index) =>{
     let itemsCopy = [...taskItems];
+    let imageCopy = [...imageItems];
     itemsCopy.splice(index, 1);
+    imageCopy.splice(index, 1);
     setTaskItems(itemsCopy);
+    setImageItems(imageCopy);
   }
 
   return (
@@ -61,20 +99,18 @@ export default function App() {
       {/* Today's Task */}
       <View style={styles.tasksWrapper}>
         <Text style={styles.sectionTitle}>Today's tasks</Text>
-        <View style={styles.items}>
+        <ScrollView style={styles.items}>
           {/* This is where the task will go! */}
           {
             taskItems.map((item, index) => {
               return (
                 <TouchableOpacity key={index} onPress={() => completeTask(index)}>
-                  <Task text={item}/>
+                  <Task text={item} image={imageItems[index]}/>
                 </TouchableOpacity>
               )
             })
           }
-          {/* <Task text={'Task 1'}/>
-          <Task text={'Task 2'}/> */}
-        </View>
+        </ScrollView>
       </View>
 
       {/* Write a task */}
@@ -126,6 +162,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8EAED',
   },
   tasksWrapper: {
+    height: '85%',
     paddingTop: 80,
     paddingHorizontal: 20
   },
