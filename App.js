@@ -1,12 +1,11 @@
 import { Platform } from 'expo-modules-core';
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import { Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView } from 'react-native';
 import Task from './components/Task';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BottomSheet from 'reanimated-bottom-sheet';
 import Animated from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
-import {Camera} from 'expo-camera';
 
 export default function App() {
   const [task, setTask] = useState();
@@ -17,21 +16,34 @@ export default function App() {
   const bsRef = React.createRef();
   const fall = new Animated.Value(1);
 
-  useEffect(() => {
-    (async () => {
-      if (Platform.OS !== 'web') {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-          alert('Sorry, we need camera roll permissions to make this work!');
-        }
-      }
-    })();
-  }, []);
+  const takePhotoFromCamera = async () =>{
+    // Ask the user for the permission to access the camera
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
-  const takePhotoFromCamera = () =>{
-    alert('Take Photo');
+    if (permissionResult.granted === false) {
+      alert("You've refused to allow this appp to access your camera!");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync();
+
+    // Explore the result
+    console.log(result);
+
+    if (!result.cancelled) {
+      setImage(result.uri);
+    }
   }
+
   const choosePhotoFromLibrary = async () =>{
+    // Ask the user for the permission to access the media library 
+    if (Platform.OS !== 'web') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera roll permissions to make this work!');
+      }
+    }
+
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
@@ -39,6 +51,7 @@ export default function App() {
       quality: 1,
     });
 
+    // Explore the result
     console.log(result);
 
     if (!result.cancelled) {
