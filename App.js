@@ -1,6 +1,6 @@
 import { Platform } from 'expo-modules-core';
 import React, {useState} from 'react';
-import { Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView, Image } from 'react-native';
 import Task from './components/Task';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BottomSheet from 'reanimated-bottom-sheet';
@@ -64,6 +64,10 @@ export default function App() {
     }    
   }
 
+  const deleteChosenPhoto = () => {
+    setImage(null);
+  }
+
   const renderInner = () => (
     <View style={styles.panel}>
       <View style={{alignItems: 'center'}}>
@@ -76,7 +80,10 @@ export default function App() {
       <TouchableOpacity style={styles.panelButtonNormal} onPress={choosePhotoFromLibrary}>
         <Text style={styles.panelButtonTitle}>Choose From Library</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.panelButtonDanger} onPress={()=> bsRef.current.snapTo(1)}>
+      <TouchableOpacity style={styles.panelButtonDanger} onPress={()=> (deleteChosenPhoto(), bsRef.current.snapTo(1))}>
+        <Text style={styles.panelButtonTitle}>Delete Photo</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.panelButtonDisable} onPress={()=> bsRef.current.snapTo(1)}>
         <Text style={styles.panelButtonTitle}>Cancel</Text>
       </TouchableOpacity>
     </View>
@@ -139,7 +146,7 @@ export default function App() {
         <TextInput style={styles.input} placeholder={"Write a task"} value={task} onChangeText={text => setTask(text)} />
         <TouchableOpacity onPress={() => (bsRef.current.snapTo(0),Keyboard.dismiss())}>
           <View style={styles.cameraWrapper}>
-            <FontAwesome name="camera" />
+            {(image === null) ? <FontAwesome name="camera" /> : <Image source={{ uri: image }} style={styles.chosenImage} />}
           </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handleAddTask()}>
@@ -154,7 +161,7 @@ export default function App() {
     {/* Add Photo Bottom Sheet */}
     <BottomSheet 
       ref = {bsRef}
-      snapPoints={[330, 0, 0]}
+      snapPoints={[400, 0, 0]}
       renderContent={renderInner}
       renderHeader={renderHeader}
       initialSnap={1}
@@ -171,6 +178,9 @@ const btnColor = {
   },
   danger: {
     backgroundColor: '#f65555',
+  },
+  disable: {
+    backgroundColor: '#999999',
   }
 }
 
@@ -284,9 +294,24 @@ const styles = StyleSheet.create({
     marginHorizontal: '15%',
     marginVertical: 5
   },
+  panelButtonDisable: {
+    width: '70%',
+    paddingVertical: 15,
+    backgroundColor: btnColor.disable.backgroundColor,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 15,
+    marginHorizontal: '15%',
+    marginVertical: 5
+  },
   panelButtonTitle: {
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold'
+  },
+  chosenImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 50
   }
 });
