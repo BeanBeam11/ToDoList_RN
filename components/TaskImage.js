@@ -16,8 +16,9 @@ const styles = StyleSheet.create({
     },
     photoItem: {
         width: 150,
-        height: 200,
-        marginTop: 10
+        height: 150,
+        marginTop: 10,
+        borderRadius: 5,
     }
 });
 

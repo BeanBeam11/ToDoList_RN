@@ -25,7 +25,12 @@ export default function App() {
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync();
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      // allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    }).then(bsRef.current.snapTo(1));
 
     // Explore the result
     console.log(result);
@@ -45,18 +50,18 @@ export default function App() {
     }
 
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [1, 1],
       quality: 1,
-    });
+    }).then(bsRef.current.snapTo(1));
 
     // Explore the result
     console.log(result);
 
     if (!result.cancelled) {
       setImage(result.uri);
-    }
+    }    
   }
 
   const renderInner = () => (
@@ -148,14 +153,14 @@ export default function App() {
 
     {/* Add Photo Bottom Sheet */}
     <BottomSheet 
-        ref = {bsRef}
-        snapPoints={[330, 0, 0]}
-        renderContent={renderInner}
-        renderHeader={renderHeader}
-        initialSnap={1}
-        callbackNode={fall}
-        enabledContentGestureInteraction={true}
-      />
+      ref = {bsRef}
+      snapPoints={[330, 0, 0]}
+      renderContent={renderInner}
+      renderHeader={renderHeader}
+      initialSnap={1}
+      callbackNode={fall}
+      enabledContentGestureInteraction={true}
+    />
     </>
   );
 }
